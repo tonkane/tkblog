@@ -1,0 +1,11 @@
+db:
+  host: 127.0.0.1
+  username: tongct425
+  pwd: testpwd123
+# 日志配置
+log:
+  disable-caller: false
+  disable-stacktrace: false
+  level: debug
+  format: console
+  output-paths: [tmp/tkblog.log, stdout]

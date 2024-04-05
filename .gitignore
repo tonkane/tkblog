@@ -54,3 +54,6 @@ $RECYCLE.BIN/
 
 # Custom
 /_output
+/vendor
+/.vscode
+*.log

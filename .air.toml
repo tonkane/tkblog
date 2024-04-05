@@ -1,0 +1,13 @@
+[build]
+# 只需要写你平常编译使用的 shell 命令。你也可以使用 `make`.
+cmd = "go build -o _output/tkblog.exe cmd/tkblog/main.go"
+# 由 `cmd` 命令得到的二进制文件名.
+bin = "_output/tkblog.exe"
+# 监听的文件扩展名
+include_ext = ["go", "tpl", "tmpl", "html"]
+# 忽略
+exclude_dir = ["assets", "tmp", "vendor", "frontend/node_modules"]
+# 如果文件更改过于频繁，则没有必要在每次更改时都触发构建。可以设置触发构建的延迟时间
+delay = 1000 # ms
+# 参数
+args_bin = ["-c", "configs/tkblog.yaml"]
