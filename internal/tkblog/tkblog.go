@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tkane/tkblog/internal/pkg/log"
+	"github.com/tkane/tkblog/pkg/version/verflag"
 )
 
 // 全局配置文件信息
@@ -18,6 +19,8 @@ func NewBlogCommand() *cobra.Command {
 		SilenceUsage: true,
 		// cmd.Execute() 时执行的run函数
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// 打印版本信息
+			verflag.PrintAndExitIfReq()
 			// 初始化日志
 			log.Init(logOptions())
 			defer log.Sync()
@@ -44,6 +47,8 @@ func NewBlogCommand() *cobra.Command {
 	// 例如，如果你的程序是一个服务器应用程序，--toggle 标志可能用来启用或禁用某个特定的功能，如调试模式。用户可以通过命令行参数 -t 来启用这个功能，而不需要修改程序的配置文件或环境变量。
 	cmd.Flags().BoolP("toggle", "t", false, "help message for toggle")
 
+	// 添加 --version 标志
+	verflag.AddFlags(cmd.PersistentFlags())
 	return cmd
 }
 

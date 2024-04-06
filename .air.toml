@@ -1,6 +1,14 @@
 [build]
 # 只需要写你平常编译使用的 shell 命令。你也可以使用 `make`.
-cmd = "go build -o _output/tkblog.exe cmd/tkblog/main.go"
+# cmd = "set VERSION_PACKAGE=github.com/tkane/tkblog/pkg/version\n\
+# set VERSION=git describe --tags --always --match='v*'\n\
+# set GIT_TREE_STATE=clean\n\
+# set GIT_COMMIT=git rev-parse HEAD\n\
+# set BUILD_DATE=date -u +'%Y-%m-%dT%H:%M:%SZ'\n\
+# set GO_LDFLAGS=-X  %VERSION_PACKAGE%.GitVersion=%VERSION% -X %VERSION_PACKAGE%.GitCommit=%GIT_COMMIT% -X %VERSION_PACKAGE%.GitTreeState=%GIT_TREE_STATE% -X %VERSION_PACKAGE%.BuildDate=%BUILD_DATE%\n\
+# echo %GO_LDFLAGS%\n\
+# go build -v -ldflags %GO_LDFLAGS% -o _output/tkblog.exe cmd/tkblog/main.go"
+cmd = "build.bat"
 # 由 `cmd` 命令得到的二进制文件名.
 bin = "_output/tkblog.exe"
 # 监听的文件扩展名
