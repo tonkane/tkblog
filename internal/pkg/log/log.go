@@ -1,11 +1,14 @@
 package log
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/tkane/tkblog/internal/pkg/known"
 )
 
 // 定义日志接口
@@ -153,3 +156,23 @@ func (l *zapLogger) Fatalw(msg string, kv ...interface{}) {
 	l.z.Sugar().Fatalw(msg, kv...)
 }
 
+// 解析 context
+func C(ctx context.Context) *zapLogger {
+	return std.C(ctx)
+}
+
+func (l *zapLogger) C(ctx context.Context) *zapLogger {
+	lc := l.clone()
+
+	if requestID := ctx.Value(known.XRequestIDKey); requestID != nil {
+		lc.z = lc.z.With(zap.Any(known.XRequestIDKey, requestID))
+	}
+
+	return lc
+}
+
+// clone 防止并发时候 id 串
+func (l *zapLogger) clone() *zapLogger {
+	lc := *l
+	return &lc
+}

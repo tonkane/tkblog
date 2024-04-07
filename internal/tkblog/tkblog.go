@@ -1,11 +1,24 @@
 package tkblog
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"github.com/tkane/tkblog/internal/pkg/log"
 	"github.com/tkane/tkblog/pkg/version/verflag"
+
+	"github.com/gin-gonic/gin"
+
+	mw "github.com/tkane/tkblog/internal/pkg/middleware"
 )
 
 // 全局配置文件信息
@@ -54,5 +67,53 @@ func NewBlogCommand() *cobra.Command {
 
 func run() error {
 	getConfigInfo()
+	gin.SetMode(viper.GetString("runmode"))
+
+	g := gin.New()
+
+	// 中间件设置
+	mws := []gin.HandlerFunc{gin.Recovery(), mw.NoCache, mw.Cors, mw.Secure, mw.RequestID()}
+
+	g.Use(mws...)
+
+	// 404 handler
+	g.NoRoute(func (c *gin.Context)  {
+		c.JSON(http.StatusOK, gin.H{"code": 10003, "message": "Page not found."})
+	})
+	// healthz handler
+	g.GET("/healthz", func (c *gin.Context)  {
+		// 打印 X-request-id
+		log.C(c).Infow("healthz is called!")
+
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+	// http 实例
+	httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
+	// 日志打印
+	log.Infow("start to listening the incoming requests on http address", "addr", viper.GetString("addr"))
+	
+	go func() {
+		if err := httpsrv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+			log.Fatalw(err.Error())
+		}
+	}()
+	
+	quit := make(chan os.Signal, 1)
+	// KILL = syscall.SIGTERM
+	// KILL 2 = syscall.SIGINT = CTRL + C
+	// KILL 9 = syscall.SIGKILL 无法捕获
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit // 这一行代码会阻塞，直到quit通道接收到一个信号
+	log.Infow("shutting down server")
+	// 设置一个超时上下文并尝试优雅地关闭服务器
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := httpsrv.Shutdown(ctx); err != nil {
+		log.Errorw("insecure server forced to shutdown", "err", err)
+		return err
+	}
+
+	log.Infow("server exiting")
 	return nil
 }

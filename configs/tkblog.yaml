@@ -9,3 +9,8 @@ log:
   level: debug
   format: console
   output-paths: [tmp/tkblog.log, stdout]
+
+# gin 相关配置
+runmode: debug
+# 这里的端口号有个冒号?
+addr: :8080
