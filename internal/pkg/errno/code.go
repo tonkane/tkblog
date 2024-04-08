@@ -9,4 +9,10 @@ var (
 
 	// 定义路由不匹配错误
 	ErrPageNotFound = &Errno{404, "ResourceNotFound.PageNotFound", "Page not found."}
+
+	// 参数绑定错误
+	ErrBind = &Errno{400, "InvalidParameter.BindError", "Error occurred while binding the request body to the struct."}
+
+	// 验证失败
+	ErrInvalidParameter = &Errno{400, "InvalidParameter", "Parmeter verification failed."}
 )

@@ -14,8 +14,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/tkane/tkblog/internal/pkg/log"
-	"github.com/tkane/tkblog/internal/pkg/core"
-	"github.com/tkane/tkblog/internal/pkg/errno"
 	"github.com/tkane/tkblog/pkg/version/verflag"
 
 	"github.com/gin-gonic/gin"
@@ -69,6 +67,11 @@ func NewBlogCommand() *cobra.Command {
 
 func run() error {
 	getConfigInfo()
+
+	if err := initStore(); err != nil {
+		return err
+	}
+
 	gin.SetMode(viper.GetString("runmode"))
 
 	g := gin.New()
@@ -78,16 +81,10 @@ func run() error {
 
 	g.Use(mws...)
 
-	// 404 handler
-	g.NoRoute(func (c *gin.Context)  {
-		core.WriteResponse(c, errno.ErrPageNotFound, nil)
-	})
-	// healthz handler
-	g.GET("/healthz", func (c *gin.Context)  {
-		// 打印 X-request-id
-		log.C(c).Infow("healthz is called!")
-		core.WriteResponse(c, nil, gin.H{"status": "ok"})
-	})
+	if err := installRouters(g); err != nil {
+		return err
+	}
+
 	// http 实例
 	httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
 	// 日志打印

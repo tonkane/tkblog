@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tkane/tkblog/internal/pkg/log"
+	"github.com/tkane/tkblog/internal/tkblog/store"
+	"github.com/tkane/tkblog/pkg/db"
 )
 
 const (
@@ -72,4 +74,30 @@ func logOptions() *log.Options {
 		Format: viper.GetString("log.format"),
 		OutputPaths: viper.GetStringSlice("log.output-paths"),
 	}
+}
+
+
+// 读取db配置，创建gorm实例，初始化store层
+func initStore() error {
+	dbOptions := &db.MySQLOptions {
+		Host: viper.GetString("db.host"),
+		Username: viper.GetString("db.username"),
+		Password: viper.GetString("db.password"),
+		Database: viper.GetString("db.database"),
+		MaxIdleConnections: viper.GetInt("db.max-idle-connections"),
+		MaxOpenConnections: viper.GetInt("db.max-open-connections"),
+		MaxConnectionLifeTime: viper.GetDuration("db.max-connection-life-time"),
+		LogLevel: viper.GetInt("db.log-level"),
+	}
+
+	ins, err := db.NewMySQL(dbOptions)
+
+	if err != nil {
+		return err
+	}
+
+	_ = store.NewStore(ins)
+
+	log.Infow("connect to mysql!")
+	return nil
 }
