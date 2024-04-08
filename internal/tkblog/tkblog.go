@@ -14,6 +14,8 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/tkane/tkblog/internal/pkg/log"
+	"github.com/tkane/tkblog/internal/pkg/core"
+	"github.com/tkane/tkblog/internal/pkg/errno"
 	"github.com/tkane/tkblog/pkg/version/verflag"
 
 	"github.com/gin-gonic/gin"
@@ -78,14 +80,13 @@ func run() error {
 
 	// 404 handler
 	g.NoRoute(func (c *gin.Context)  {
-		c.JSON(http.StatusOK, gin.H{"code": 10003, "message": "Page not found."})
+		core.WriteResponse(c, errno.ErrPageNotFound, nil)
 	})
 	// healthz handler
 	g.GET("/healthz", func (c *gin.Context)  {
 		// 打印 X-request-id
 		log.C(c).Infow("healthz is called!")
-
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+		core.WriteResponse(c, nil, gin.H{"status": "ok"})
 	})
 	// http 实例
 	httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
