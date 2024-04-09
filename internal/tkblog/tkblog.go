@@ -14,6 +14,8 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/tkane/tkblog/internal/pkg/log"
+	"github.com/tkane/tkblog/pkg/token"
+	"github.com/tkane/tkblog/internal/pkg/known"
 	"github.com/tkane/tkblog/pkg/version/verflag"
 
 	"github.com/gin-gonic/gin"
@@ -71,6 +73,9 @@ func run() error {
 	if err := initStore(); err != nil {
 		return err
 	}
+
+	// 初始化 token 包蜜月
+	token.Init(viper.GetString("jwt-secret"), known.XusernameKey)
 
 	gin.SetMode(viper.GetString("runmode"))
 

@@ -9,6 +9,8 @@ import (
 
 	"github.com/tkane/tkblog/internal/tkblog/store"
 	"github.com/tkane/tkblog/internal/tkblog/controller/v1/user"
+
+	mw "github.com/tkane/tkblog/internal/pkg/middleware"
 )
 
 func installRouters(g *gin.Engine) error {
@@ -25,11 +27,19 @@ func installRouters(g *gin.Engine) error {
 
 	uc := user.New(store.S)
 
+	g.POST("/login", uc.Login)
+
 	v1 := g.Group("/v1")
 	{
 		userv1 := v1.Group("/users")
 		{
 			userv1.POST("", uc.Create)
+			userv1.PUT(":name/change-password", uc.ChangePwd)
+			userv1.Use(mw.Authn())
+			// Auth 中间件在这之后才有效
+			userv1.GET("test", func(c *gin.Context){
+				core.WriteResponse(c, nil, gin.H{"status": "ok"})
+			})
 		}
 	}
 

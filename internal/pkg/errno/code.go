@@ -15,4 +15,10 @@ var (
 
 	// 验证失败
 	ErrInvalidParameter = &Errno{400, "InvalidParameter", "Parmeter verification failed."}
+
+	// token 错误
+	ErrSignToken = &Errno{401, "AuthFailure.SignTokenError", "Error occurred while signing the JSON web token."}
+
+	// jwt 格式错误
+	ErrTokenInvalid = &Errno{401, "AuthFailure.TokenInvalid", "Token was invalid."}
 )

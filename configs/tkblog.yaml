@@ -19,3 +19,4 @@ log:
 runmode: debug
 # 这里的端口号有个冒号?
 addr: :8080
+jwt-secret: Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5 # JWT 签发密钥
