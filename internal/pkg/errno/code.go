@@ -21,4 +21,7 @@ var (
 
 	// jwt 格式错误
 	ErrTokenInvalid = &Errno{401, "AuthFailure.TokenInvalid", "Token was invalid."}
+
+	// 请求没有被授权
+	ErrUnauthorized = &Errno{401, "AuthFailure.Unauthorized", "Unauthorized."}
 )

@@ -10,6 +10,8 @@ import (
 	v1 "github.com/tkane/tkblog/pkg/api/tkblog/v1"
 )
 
+const defaultMethods = "(GET)|(POST)|(PUT)|(DELETE)"
+
 func (ctrl *UserCtrl) Create(c *gin.Context) {
 	log.C(c).Infow("create user function called!")
 
@@ -29,5 +31,11 @@ func (ctrl *UserCtrl) Create(c *gin.Context) {
 		return
 	}
 
-	core.WriteResponse(c, nil, nil)
+	// 创建用户时 写入权限规则
+	if _, err := ctrl.a.AddNamedPolicy("p", r.Username, "/v1/users/" + r.Username, defaultMethods); err != nil {
+		core.WriteResponse(c, err, nil)
+		return
+	}
+
+	core.WriteResponse(c, nil, gin.H{"status":"ok"})
 }

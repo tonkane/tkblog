@@ -25,3 +25,15 @@ type ChangePwdRequest struct {
 	OldPwd string `json:"oldpwd" valid:"required,stringlength(6|18)"`
 	NewPwd string `json:"newpwd" valid:"required,stringlength(6|18)"`
 }
+
+type GetUserResponse UserInfo
+
+type UserInfo struct {
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
+	PostCount int64 `json:"postCount"`
+	CreateAt string `json:"createAt"`
+	UpdateAt string `json:"updateAt"`
+}

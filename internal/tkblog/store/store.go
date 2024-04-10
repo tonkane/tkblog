@@ -14,6 +14,7 @@ var (
 
 type IStore interface {
 	Users() UserStore
+	DB() *gorm.DB
 }
 
 type datastore struct {
@@ -33,4 +34,9 @@ func NewStore(db *gorm.DB) *datastore {
 // 公用层应该控制反转？
 func (ds *datastore) Users() UserStore {
 	return newUsers(ds.db)
+}
+
+// 返回DB实例
+func (ds *datastore) DB() *gorm.DB {
+	return ds.db
 }

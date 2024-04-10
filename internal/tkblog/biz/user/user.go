@@ -2,22 +2,25 @@ package user
 
 import (
 	"context"
+	"errors"
 	"regexp"
 
 	"github.com/jinzhu/copier"
+	"gorm.io/gorm"
 
-	"github.com/tkane/tkblog/internal/tkblog/store"
 	"github.com/tkane/tkblog/internal/pkg/errno"
 	"github.com/tkane/tkblog/internal/pkg/model"
-	"github.com/tkane/tkblog/pkg/token"
-	"github.com/tkane/tkblog/pkg/auth"
+	"github.com/tkane/tkblog/internal/tkblog/store"
 	v1 "github.com/tkane/tkblog/pkg/api/tkblog/v1"
+	"github.com/tkane/tkblog/pkg/auth"
+	"github.com/tkane/tkblog/pkg/token"
 )
 
 type UserBiz interface {
 	Create(ctx context.Context, r *v1.CreateUserRequest) error
 	Login(ctx context.Context, r *v1.LoginRequest) (*v1.LoginResponse, error)
-	ChangePwd(ctx context.Context, username string, r *v1.ChangePwdRequest) error 
+	ChangePwd(ctx context.Context, username string, r *v1.ChangePwdRequest) error
+	Get(ctx context.Context, username string) (*v1.GetUserResponse, error) 
 }
 
 type userBiz struct {
@@ -80,4 +83,22 @@ func (b *userBiz) ChangePwd(ctx context.Context, username string, r *v1.ChangePw
 	}
 
 	return nil
+}
+
+func (b *userBiz) Get(ctx context.Context, username string) (*v1.GetUserResponse, error) {
+	user, err := b.ds.Users().Get(ctx, username)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errno.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	var resp v1.GetUserResponse
+	_ = copier.Copy(&resp, user)
+
+	resp.CreateAt = user.CreatedAt.Format("2006-01-02 15:04:05")
+	resp.UpdateAt = user.UpdatedAt.Format("2006-01-02 15:04:05")
+
+	return &resp, nil
 }
