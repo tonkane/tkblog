@@ -26,4 +26,7 @@ tls:
   addr: :8443 
   cert: ./_output/cert/server.crt
   key: ./_output/cert/server.key
-  
+
+# grpc 服务器
+grpc:
+  addr: :9090

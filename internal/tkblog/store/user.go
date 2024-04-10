@@ -12,6 +12,7 @@ type UserStore interface {
 	Create(ctx context.Context, user *model.UserM) error
 	Get(ctx context.Context, username string) (*model.UserM, error)
 	Update(ctx context.Context, user *model.UserM) error
+	List(ctx context.Context, offset, limit int) (int64, []*model.UserM, error)
 }
 
 type users struct {
@@ -41,4 +42,15 @@ func (u *users) Get(ctx context.Context, username string) (*model.UserM, error) 
 // 更新记录
 func (u *users) Update(ctx context.Context, user *model.UserM) error {
 	return u.db.Save(user).Error
+}
+
+// List
+func (u *users) List(ctx context.Context, offset, limit int) (count int64, ret []*model.UserM, err error) {
+	// offset -1 limit -1 ? 难道还要重置 ?
+	err = u.db.Offset(offset).Limit(defaultLimit(limit)).Order("id asc").Find(&ret).
+		Offset(-1).
+		Limit(-1).
+		Count(&count).
+		Error
+	return
 }

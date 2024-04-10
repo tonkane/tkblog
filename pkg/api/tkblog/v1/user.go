@@ -37,3 +37,16 @@ type UserInfo struct {
 	CreateAt string `json:"createAt"`
 	UpdateAt string `json:"updateAt"`
 }
+
+// user list 的请求参数结构
+// 这里的 form ？表单类型？
+type ListUserRequest struct {
+	Offset int `form:"offset"`
+	Limit int `form:"limit"`
+}
+
+// user list 的响应参数结构
+type ListUserResponse struct {
+	TotalCount int64 `json:"totalCount"`
+	Users []*UserInfo `json:"users"`
+}

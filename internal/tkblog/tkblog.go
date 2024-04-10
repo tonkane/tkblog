@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,14 +14,19 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/tkane/tkblog/internal/pkg/log"
-	"github.com/tkane/tkblog/pkg/token"
 	"github.com/tkane/tkblog/internal/pkg/known"
+	"github.com/tkane/tkblog/internal/pkg/log"
+	"github.com/tkane/tkblog/internal/tkblog/controller/v1/user"
+	"github.com/tkane/tkblog/internal/tkblog/store"
+	"github.com/tkane/tkblog/pkg/token"
 	"github.com/tkane/tkblog/pkg/version/verflag"
 
 	"github.com/gin-gonic/gin"
 
 	mw "github.com/tkane/tkblog/internal/pkg/middleware"
+
+	pb "github.com/tkane/tkblog/pkg/proto/tkblog/v1"
+	"google.golang.org/grpc"
 )
 
 // 全局配置文件信息
@@ -105,6 +111,8 @@ func run() error {
 	httpsrv := startInsecureServer(g)
 	// 启动 https 服务器
 	httpssrv := startSecureServer(g)
+	// 启动 grpc 服务器
+	grpcsrv := startGRPCServer()
 	
 	quit := make(chan os.Signal, 1)
 	// KILL = syscall.SIGTERM
@@ -126,6 +134,9 @@ func run() error {
 		log.Errorw("secure server forced to shutdown", "err", err)
 		return err
 	}
+
+	// 优雅关闭 grpc
+	grpcsrv.GracefulStop()
 
 	log.Infow("server exiting")
 	return nil
@@ -166,4 +177,25 @@ func startSecureServer(g *gin.Engine) *http.Server {
 	}
 	
 	return httpssrv
+}
+
+// 启动 rpc 服务器
+func startGRPCServer() *grpc.Server {
+	lis, err := net.Listen("tcp", viper.GetString("grpc.addr"))
+	if err != nil {
+		log.Fatalw("failed to listen", "err", err)
+	}
+
+	// grpc 实例
+	grpcsrv := grpc.NewServer()
+	pb.RegisterTkBlogServer(grpcsrv, user.New(store.S, nil))
+
+	log.Infow("start to listening the incoming requests on grpc address", "addr", viper.GetString("grpc.addr"))
+	go func() {
+		if err := grpcsrv.Serve(lis); err != nil {
+			log.Fatalw(err.Error())
+		}
+	}()
+
+	return grpcsrv
 }
