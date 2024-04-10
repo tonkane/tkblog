@@ -20,3 +20,10 @@ runmode: debug
 # 这里的端口号有个冒号?
 addr: :8080
 jwt-secret: Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5 # JWT 签发密钥
+
+# HTTPS 服务器
+tls:
+  addr: :8443 
+  cert: ./_output/cert/server.crt
+  key: ./_output/cert/server.key
+  

@@ -91,15 +91,20 @@ func run() error {
 	}
 
 	// http 实例
-	httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
-	// 日志打印
-	log.Infow("start to listening the incoming requests on http address", "addr", viper.GetString("addr"))
+	// httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
+	// // 日志打印
+	// log.Infow("start to listening the incoming requests on http address", "addr", viper.GetString("addr"))
 	
-	go func() {
-		if err := httpsrv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
-			log.Fatalw(err.Error())
-		}
-	}()
+	// go func() {
+	// 	if err := httpsrv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+	// 		log.Fatalw(err.Error())
+	// 	}
+	// }()
+
+	// 启动 http 服务器
+	httpsrv := startInsecureServer(g)
+	// 启动 https 服务器
+	httpssrv := startSecureServer(g)
 	
 	quit := make(chan os.Signal, 1)
 	// KILL = syscall.SIGTERM
@@ -117,6 +122,48 @@ func run() error {
 		return err
 	}
 
+	if err := httpssrv.Shutdown(ctx); err != nil {
+		log.Errorw("secure server forced to shutdown", "err", err)
+		return err
+	}
+
 	log.Infow("server exiting")
 	return nil
+}
+
+
+// 启动 HTTP 服务器
+func startInsecureServer(g *gin.Engine) *http.Server {
+	// http 实例
+	httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
+
+	// 日志打印
+	log.Infow("start to listening the incoming requests on http address", "addr", viper.GetString("addr"))
+	
+	go func() {
+		if err := httpsrv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+			log.Fatalw(err.Error())
+		}
+	}()
+
+	return httpsrv
+}
+
+// 启动 HTTPS 服务器
+func startSecureServer(g *gin.Engine) *http.Server {
+	// http 实例
+	httpssrv := &http.Server{Addr: viper.GetString("tls.addr"), Handler: g}
+
+	// 日志打印
+	log.Infow("start to listening the incoming requests on https address", "addr", viper.GetString("tls.addr"))
+	cert, key := viper.GetString("tls.cert"), viper.GetString("tls.key")
+	if cert != "" && key != "" {
+		go func() {
+			if err := httpssrv.ListenAndServeTLS(cert, key); err != nil && errors.Is(err, http.ErrServerClosed) {
+				log.Fatalw(err.Error())
+			}
+		}()
+	}
+	
+	return httpssrv
 }
