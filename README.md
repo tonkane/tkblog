@@ -1,1 +1,1 @@
-ECHO 处于打开状态。
+Golang Language Personal Mini Blog Practice Demo Project
